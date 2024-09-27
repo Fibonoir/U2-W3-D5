@@ -136,6 +136,21 @@ const fetchProducts = async () => {
 
         // Append the product card to the product list
         productList.appendChild(productCard);
+
+        // Add hover effect to switch images
+        const imgElement = productCard.querySelector(`#productImage-${product._id}`);
+
+        // Mouseover event to switch to the second image (if available)
+        imgElement.addEventListener('mouseover', () => {
+          if (imageArr[1]) {  // Check if a second image is available
+            imgElement.src = imageArr[1];
+          }
+        });
+
+        // Mouseout event to switch back to the first image
+        imgElement.addEventListener('mouseout', () => {
+          imgElement.src = imageArr[0];
+        });
       });
     }
   } catch (error) {
