@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (productId) {
       fetchProductDetailForEditing(productId); // Fetch product details for editing
     }
-    document.getElementById("productForm").addEventListener("submit", editProduct); // Listen for form submission
+    document.getElementById("productForm").addEventListener("submit", saveProduct); // Listen for form submission
     document.getElementById("resetButton").addEventListener("click", resetForm);
   } else if (currentPage === "homepage.html") {
     fetchProducts();
@@ -26,8 +26,8 @@ const fetchProductDetailForEditing = async (productId) => {
   try {
     const response = await fetch(apiEndpoint + productId, {
       headers: {
-        "Authorization": token
-      }
+        Authorization: token,
+      },
     });
 
     if (!response.ok) {
@@ -45,8 +45,8 @@ const fetchProductDetailForEditing = async (productId) => {
   }
 };
 
-// Edit Product
-const editProduct = async (event) => {
+// Save Product (Handles both creation and editing)
+const saveProduct = async (event) => {
   event.preventDefault(); // Prevent form submission
 
   const productId = new URLSearchParams(window.location.search).get("id");
@@ -59,21 +59,35 @@ const editProduct = async (event) => {
   };
 
   try {
-    const response = await fetch(apiEndpoint + productId, {
-      method: "PUT",
-      headers: {
-        "Authorization": token,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(product)
-    });
+    let response;
+    if (productId) {
+      // If productId exists, update the product (PUT)
+      response = await fetch(apiEndpoint + productId, {
+        method: "PUT",
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+    } else {
+      // If no productId, create a new product (POST)
+      response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          Authorization: token,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+    }
 
     if (response.ok) {
-      alert("Product updated successfully!");
-      window.location.href = "back-office.html"; // Redirect to the back-office page after editing
+      alert(productId ? "Product updated successfully!" : "Product added successfully!");
+      window.location.href = "back-office.html"; // Redirect to the back-office page after save
     } else {
       const errorData = await response.json();
-      showError("Error updating product: " + errorData.message);
+      showError("Error saving product: " + errorData.message);
     }
   } catch (error) {
     showError("Error: " + error.message);
@@ -102,8 +116,8 @@ const fetchProducts = async () => {
   try {
     const response = await fetch(apiEndpoint, {
       headers: {
-        "Authorization": token
-      }
+        Authorization: token,
+      },
     });
 
     const products = await response.json();
@@ -114,11 +128,11 @@ const fetchProducts = async () => {
       productList.innerHTML = "";
 
       products.forEach((product) => {
-        const imageArr = product.imageUrl.split(",").map(url => url.trim());
+        const imageArr = product.imageUrl.split(",").map((url) => url.trim());
 
         // Create a div element to hold the product card
-        const productCard = document.createElement('div');
-        productCard.classList.add('col-md-4');
+        const productCard = document.createElement("div");
+        productCard.classList.add("col-md-4");
 
         // Set the inner HTML for the product card
         productCard.innerHTML = `
@@ -141,14 +155,14 @@ const fetchProducts = async () => {
         const imgElement = productCard.querySelector(`#productImage-${product._id}`);
 
         // Mouseover event to switch to the second image (if available)
-        imgElement.addEventListener('mouseover', () => {
-          if (imageArr[1]) {  // Check if a second image is available
+        imgElement.addEventListener("mouseover", () => {
+          if (imageArr[1]) {
             imgElement.src = imageArr[1];
           }
         });
 
         // Mouseout event to switch back to the first image
-        imgElement.addEventListener('mouseout', () => {
+        imgElement.addEventListener("mouseout", () => {
           imgElement.src = imageArr[0];
         });
       });
@@ -160,8 +174,7 @@ const fetchProducts = async () => {
 
 // Redirect to Edit Product Page
 const editProductRedirect = (productId) => {
-  // Open the edit page in a new window
-  window.open(`back-office.html?id=${productId}`, '_blank');
+  window.open(`back-office.html?id=${productId}`, "_blank");
 };
 
 // Delete Product
@@ -171,13 +184,13 @@ const deleteProduct = async (productId) => {
       const response = await fetch(apiEndpoint + productId, {
         method: "DELETE",
         headers: {
-          "Authorization": token
-        }
+          Authorization: token,
+        },
       });
 
       if (response.ok) {
         alert("Product deleted successfully!");
-        fetchProducts();  // Reload product list
+        fetchProducts(); // Reload product list
       } else {
         const errorData = await response.json();
         showError("Error deleting product: " + errorData.message);
@@ -198,14 +211,13 @@ const fetchProductDetail = async (productId) => {
   try {
     const response = await fetch(apiEndpoint + productId, {
       headers: {
-        "Authorization": token
-      }
+        Authorization: token,
+      },
     });
 
     const product = await response.json();
-    const imageArr = product.imageUrl.split(",").map(url => url.trim());
+    const imageArr = product.imageUrl.split(",").map((url) => url.trim());
 
-    // Generate the main product structure with a placeholder for the carousel
     let detailContent = `
       <h2 class="devil-font">${product.name}</h2>
       <img id="mainImage" src="${imageArr[0]}" class="img-fluid mb-3" alt="${product.name}">
@@ -213,26 +225,21 @@ const fetchProductDetail = async (productId) => {
       <div class="row mt-4 justify-content-center" id="imageCarousel">
     `;
 
-    // Generate carousel thumbnails dynamically
     imageArr.forEach((img, index) => {
       detailContent += `
       <img class="m-1" src="${img}" class="img-thumbnail img-clickable" alt="Image ${index + 1}" style="cursor: pointer;width:100px;" onclick="changeMainImage('${img}')">
       `;
     });
 
-    // Close the carousel row div
     detailContent += `</div>`;
 
-    // Add the rest of the product details below the carousel
     detailContent += `
       <p class="mt-3"><strong>Description:</strong> ${product.description}</p>
       <p><strong>Use:</strong> ${product.brand}</p>
       <p><strong>Price:</strong> $${product.price}</p>
     `;
 
-    // Insert the full content into the DOM
     document.getElementById("detailContent").innerHTML = detailContent;
-
   } catch (error) {
     showError("Error fetching product details: " + error.message);
   }
