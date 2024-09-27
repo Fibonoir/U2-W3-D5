@@ -1,0 +1,47 @@
+@font-face {
+    font-family: "Devil Breeze";
+    src: url(./devil_breeze/Devil\ Breeze\ Medium.ttf);
+}
+
+.devil-font {
+    font-family: "Devil Breeze", sans-serif;
+}
+
+body {
+    font-family: "Noto Sans", sans-serif;
+    
+}
+
+nav ul li a:hover {
+    color: #00abc8 !important;
+    transition: 0.2s;
+}
+
+nav ul li:last-of-type a {
+    padding: 0.35rem 1rem !important
+}
+
+nav ul li a:last-of-type svg:hover {
+    fill: #00abc8;
+}
+
+.card {
+    border-radius: 0 !important;
+    border-color: #00abc8;
+}
+
+.card-body .btn {
+    border-color: #00abc8;
+    font-family: "Devil Breeze";
+
+}
+
+.card-body .btn:hover {
+    background-color: black;
+    color: #00abc8;
+    border-color: black;
+}
+
+#save-button {
+    background-color: #00abc8;
+}
